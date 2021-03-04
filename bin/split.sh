@@ -3,20 +3,26 @@
 set -e
 set -x
 
-CURRENT_BRANCH="master"
+CURRENT_BRANCH="$(git branch --show-current)"
 
-function split()
-{
-    SHA1=`./bin/splitsh-lite --prefix=$1`
-    git push $2 "$SHA1:refs/heads/$CURRENT_BRANCH" -f
+echo ${CURRENT_BRANCH}
+
+case "$(uname -s)" in
+  Linux*) SPLIT_SH="splitsh-lite-linux" ;;
+  Darwin*) SPLIT_SH="splitsh-lite-mac" ;;
+  *) exit 1 ;;
+esac
+
+function split() {
+  SHA1=$(./bin/${SPLIT_SH} --prefix=$1)
+  git push $2 "${SHA1}:refs/heads/${CURRENT_BRANCH}" -f --tags
 }
 
-function remote()
-{
-    git remote add $1 $2 || true
+function remote() {
+  git remote add $1 $2 2>/dev/null || true
 }
 
-git pull origin $CURRENT_BRANCH
+git pull origin ${CURRENT_BRANCH}
 
 remote repo1 git@github.com:claudiu-cristea/repo1.git
 
