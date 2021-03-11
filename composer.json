@@ -8,6 +8,7 @@
         "git-split": {
             "repos": {
                 "packages/repo1": "git@github.com:claudiu-cristea/repo1.git"
+                "packages/repo2": "git@github.com:claudiu-cristea/repo2.git"
             }
         }
     }
