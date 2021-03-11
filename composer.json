@@ -1,0 +1,14 @@
+{
+    "name": "claudiu-cristea/monorepo",
+    "description": "Monorepo+Multirepos",
+    "require-dev": {
+        "devshop/git-split": "^1.0"
+    },
+    "extra": {
+        "git-split": {
+            "repos": {
+                "repo1": "git@github.com:claudiu-cristea/repo1.git"
+            }
+        }
+    }
+}
