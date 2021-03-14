@@ -110,9 +110,11 @@ class GitSplit {
     }
 
     $bin_path = self::$binDir . '/' . self::SPLITSH_BIN;
+    $bin_path_relative = self::getRelativePath($bin_path);
+
     if (file_exists($bin_path)) {
       if (is_executable($bin_path)) {
-        echo "- {$name} already installed at " . self::getRelativePath($bin_path) . "\n";
+        echo "- {$name} already installed at {$bin_path_relative}\n";
         return $bin_path;
       }
       else {
@@ -129,11 +131,11 @@ class GitSplit {
     copy($url, $filename_tar_gz);
     echo "- Unpacking {$filename_tar_gz}\n";
     self::exec("tar xzf {$filename_tar_gz}");
-    echo "- Moving ./{$name} to {$bin_path}\n";
+    echo "- Moving ./{$name} to {$bin_path_relative}\n";
     self::exec("mv ./{$name} {$bin_path}");
-    echo "- Setting permissions for {$bin_path}\n";
+    echo "- Setting permissions for {$bin_path_relative}\n";
     self::exec("chmod 0755 {$bin_path}");
-    echo "- Installed {$url} to {$bin_path}\n";
+    echo "- Installed {$url} to {$bin_path_relative}\n";
 
     return $bin_path;
   }
