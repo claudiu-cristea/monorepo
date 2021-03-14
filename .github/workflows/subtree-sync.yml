@@ -13,6 +13,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
@@ -21,19 +22,21 @@ jobs:
         run: |
           curl -u $GITHUB_USERNAME:$GITSPLIT_GITHUB_TOKEN https://api.github.com/repos/$MONOREPO/collaborators/$GITHUB_USERNAME/permission | grep "permission" | grep "admin
           write"
+
       - name: Confirm write access to $COMPONENT_REPO.
         run: |
           curl -u $GITHUB_USERNAME:$GITSPLIT_GITHUB_TOKEN https://api.github.com/repos/$COMPONENT_REPO/collaborators/$GITHUB_USERNAME/permission | grep "permission" | grep "admin
           write"
+
       - uses: fregante/setup-git-token@v1
         with:
           token: ${{ secrets.INPUT_GITHUB_TOKEN }}
 
-      - name: Cache git split database file.
-        uses: actions/cache@v1
-        with:
-          path: $RUNNER_WORKSPACE/monorepo/.git/splitsh.db
-          key: 'splitsh-cache'
+#      - name: Cache git split database file.
+#        uses: actions/cache@v1
+#        with:
+#          path: $RUNNER_WORKSPACE/monorepo/.git/splitsh.db
+#          key: 'splitsh-cache'
 
       - name: Show all evnvironmen variables
         run: env | sort
