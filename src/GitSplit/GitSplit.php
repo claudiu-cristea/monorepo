@@ -164,7 +164,7 @@ class GitSplit {
    *   A path relative to project's root.
    */
   protected static function getRelativePath(string $absolute_path): string {
-    return substr($absolute_path, strlen(getcwd()) + 1);
+    return '.' . substr($absolute_path, strlen(getcwd()));
   }
 
 }
