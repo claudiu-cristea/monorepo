@@ -20,6 +20,13 @@ use Composer\Script\Event;
 class GitSplit {
 
   /**
+   * The Composer bin dir.
+   *
+   * @var string
+   */
+  protected static $binDir;
+
+  /**
    * The splitsh binary name.
    *
    * @var string
@@ -44,12 +51,14 @@ class GitSplit {
    */
   public static function splitRepos(Event $event): void {
     $composer = $event->getComposer();
+    self::$binDir = $composer->getConfig()->get('bin-dir');
+
     $repos = $composer->getPackage()->getExtra()['git-split']['repos'] ?? NULL;
     if (!$repos) {
       throw new \LogicException("No repos found in composer.json 'extras.git-split' section. Nothing to do.");
     }
 
-    $bin_path = self::installBin($composer);
+    $bin_path = self::installBin();
 
     // Extracts the currently checked out branch name. In GitHub Actions, this
     // is the branch created in the step "Create a branch for the splitsh-lite".
@@ -63,20 +72,22 @@ class GitSplit {
     $target_ref = $is_tag ? str_replace('heads/', '', $current_ref) : "refs/heads/{$current_ref}";
 
     foreach ($repos as $folder => $remote) {
-      echo "\n\n- Splitting {$folder} for Git reference {$current_ref} to {$remote}...\n";
+      echo "\n- Splitting {$folder} for Git reference {$current_ref} to {$remote}\n";
 
       // Use a different local target branch so we dont break local installs by
       // reassigning the current branch to the new commit.
       $target = "refs/splits/{$folder}";
 
       // Git split subtree.
-      if (self::exec("{$bin_path} --prefix={$folder}/ --target={$target}") != 0) {
-        exit(1);
+      $exit_code = self::exec("{$bin_path} --prefix={$folder}/ --target={$target}");
+      if ($exit_code) {
+        exit($exit_code);
       }
 
       // Push the $target_ref to the remote.
-      if (self::exec("git push --force {$remote} {$target}:{$target_ref}") != 0) {
-        exit(1);
+      $exit_code = self::exec("git push --force {$remote} {$target}:{$target_ref}");
+      if ($exit_code) {
+        exit($exit_code);
       }
     }
   }
@@ -84,17 +95,12 @@ class GitSplit {
   /**
    * Installs splitsh-lite bin.
    *
-   * @param \Composer\Composer $composer
-   *   The Composer object.
-   *
    * @return string
    *   The binary path.
    */
-  protected static function installBin(Composer $composer): string {
-    $bin_dir = $composer->getConfig()->get('bin-dir');
-
-    if (!is_dir($bin_dir)) {
-      mkdir($bin_dir, 0777, TRUE);
+  protected static function installBin(): string {
+    if (!is_dir(self::$binDir)) {
+      mkdir(self::$binDir, 0777, TRUE);
     }
     $name = self::SPLITSH_BIN;
 
@@ -103,10 +109,10 @@ class GitSplit {
       throw new \LogicException("There's no splitsh-lite version for {$os} operating system.");
     }
 
-    $bin_path = realpath("{$bin_dir}/" . self::SPLITSH_BIN);
+    $bin_path = self::$binDir . '/' . self::SPLITSH_BIN;
     if (file_exists($bin_path)) {
       if (is_executable($bin_path)) {
-        echo "- {$name} already installed at {$bin_path}\n";
+        echo "- {$name} already installed at " . self::getRelativePath($bin_path) . "\n";
         return $bin_path;
       }
       else {
@@ -116,22 +122,17 @@ class GitSplit {
     }
 
     $url = self::SPLITSH_URL[$os];
-    if (strpos($url, 'tar.gz') !== FALSE) {
-      $filename = sys_get_temp_dir() . "/$name";
-      $filename_tar = "{$filename}.tar";
-      $filename_tar_gz = "{$filename_tar}.gz";
+    $filename = sys_get_temp_dir() . "/{$name}";
+    $filename_tar_gz = "{$filename}.tar.gz";
 
-      echo "- Downloading to {$filename_tar_gz}\n";
-      copy($url, $filename_tar_gz);
-
-      passthru("tar zxf {$filename_tar_gz}");
-      rename("./{$name}", $bin_path);
-    }
-    else {
-      copy($url, $bin_path);
-    }
-
-    chmod($bin_path, 0755);
+    echo "- Downloading to {$filename_tar_gz}\n";
+    copy($url, $filename_tar_gz);
+    echo "- Unpacking {$filename_tar_gz}\n";
+    self::exec("tar xzf {$filename_tar_gz}");
+    echo "- Moving ./{$name} to {$bin_path}\n";
+    self::exec("mv ./{$name} {$bin_path}");
+    echo "- Setting permissions for {$bin_path}\n";
+    self::exec("chmod 0755 {$bin_path}");
     echo "- Installed {$url} to {$bin_path}\n";
 
     return $bin_path;
@@ -145,9 +146,23 @@ class GitSplit {
    * @return mixed
    */
   protected static function exec($command) {
-    echo "> $command \n";
+    $displayed_command = str_replace(getcwd(), '.', $command);
+    echo "> {$displayed_command} \n";
     passthru($command, $exit);
     return $exit;
+  }
+
+  /**
+   * Converts an absolute path to a path relative to project's root.
+   *
+   * @param string $absolute_path
+   *   The absolute path.
+   *
+   * @return string
+   *   A path relative to project's root.
+   */
+  protected static function getRelativePath(string $absolute_path): string {
+    return substr($absolute_path, strlen(getcwd()) + 1);
   }
 
 }
