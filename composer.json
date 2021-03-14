@@ -2,18 +2,16 @@
     "name": "claudiu-cristea/monorepo",
     "description": "Monorepo+Multirepos demo",
     "require": {
-        "php": "^7.1",
-        "cweagans/composer-patches": "^1.7"
+        "php": "^7.1"
     },
-    "require-dev": {
-        "devshop/git-split": "1.x-dev"
+    "autoload-dev": {
+        "psr-4": {
+            "OpenEuropa\\Library\\": "src"
+        }
     },
     "scripts": {
-        "post-install-cmd": [
-            "mkdir -p ./bin"
-        ],
-        "post-update-cmd": [
-            "mkdir -p ./bin"
+        "git:split": [
+            "OpenEuropa\\Library\\GitSplit\\GitSplit::splitRepos"
         ]
     },
     "extra": {
@@ -21,13 +19,6 @@
             "repos": {
                 "packages/repo1": "https://github.com/claudiu-cristea/repo1.git",
                 "packages/repo2": "https://github.com/claudiu-cristea/repo2.git"
-            }
-        },
-        "enable-patching": true,
-        "composer-exit-on-patch-failure": true,
-        "patches": {
-            "devshop/git-split": {
-                "Support macOS": "https://patch-diff.githubusercontent.com/raw/devshop-packages/git-split/pull/1.diff"
             }
         }
     }

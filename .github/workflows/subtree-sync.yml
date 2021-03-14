@@ -16,7 +16,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '7.1'
 
       - name: Confirm write access to $MONOREPO
         run: |
@@ -32,35 +32,11 @@ jobs:
         with:
           token: ${{ secrets.INPUT_GITHUB_TOKEN }}
 
-#      - name: Cache git split database file.
-#        uses: actions/cache@v1
-#        with:
-#          path: $RUNNER_WORKSPACE/monorepo/.git/splitsh.db
-#          key: 'splitsh-cache'
-
       - name: Show all evnvironmen variables
         run: env | sort
 
-      - name: Create a branch for the splitsh
+      - name: Create a branch for the splitsh-lite
         run: git checkout -b $( echo ${GITHUB_REF} | sed 's/refs\/heads\///')
 
-      - run: mkdir $HOME/.ssh
-      - name: Authorize GitHub.com as a known_host
-        run: ssh-keyscan github.com > $HOME/.ssh/known_hosts
-
-#      - name: Get Composer Cache Directory
-#        id: composer-cache
-#        run: |
-#          echo "::set-output name=dir::$(composer config cache-files-dir)"
-#      - uses: actions/cache@v1
-#        with:
-#          path: ${{ steps.composer-cache.outputs.dir }}
-#          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-#          restore-keys: |
-#            ${{ runner.os }}-composer-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress
-
-      # @TODO: Our plugin could be coded to output the commands needed to run splitsh-lite.sh directly. This would shorten CI runs because we wouldn't need composer install for the Git Split job.
       - name: Split monorepo
         run: composer git:split
