@@ -8,7 +8,7 @@ use Composer\Script\Event;
 /**
  * Splits a Git repo into multiple sub-repos using the splitsh-lite script.
  *
- * This script is heavily inspired by GitSplit Component (devshop/git-split). In
+ * This script is heavily inspired by GitSplit Component (devshop/git-split), in
  * fact the code is almost the same. The reason not using devshop/git-split, by
  * requiring it as Composer dependency, is that we want to run the command
  * without needing a prior Composer install, which would slow the GitHub action.
@@ -38,6 +38,9 @@ class GitSplit {
 
   /**
    * Run the splitsh-lite script on each repo.
+   *
+   * @param \Composer\Script\Event $event
+   *   The Composer event.
    */
   public static function splitRepos(Event $event): void {
     $composer = $event->getComposer();
@@ -46,8 +49,7 @@ class GitSplit {
       throw new \LogicException("No repos found in composer.json 'extras.git-split' section. Nothing to do.");
     }
 
-    $bin_dir = $composer->getConfig()->get('bin-dir');
-    self::installBin($bin_dir);
+    $bin_path = self::installBin($composer);
 
     // Extracts the currently checked out branch name. In GitHub Actions, this
     // is the branch created in the step "Create a branch for the splitsh-lite".
@@ -67,35 +69,30 @@ class GitSplit {
       // reassigning the current branch to the new commit.
       $target = "refs/splits/{$folder}";
 
-      // Split the commits into a different branch.
-      $bin_path = realpath("{$bin_dir}/" . self::SPLITSH_BIN);
-
-      if (!file_exists($bin_path)) {
-        throw new \Exception("The script splitsh-lite was not found in {$bin_path}.");
-      }
-      elseif (!is_executable($bin_path)) {
-        throw new \Exception("The script splitsh-lite file is not executable: {$bin_path}");
-      }
-
+      // Git split subtree.
       if (self::exec("{$bin_path} --prefix={$folder}/ --target={$target}") != 0) {
         exit(1);
       }
 
-      // Push the current_ref to the remote.
+      // Push the $target_ref to the remote.
       if (self::exec("git push --force {$remote} {$target}:{$target_ref}") != 0) {
         exit(1);
       }
     }
   }
 
-
   /**
    * Installs splitsh-lite bin.
    *
-   * @param string $bin_dir
-   *   The project's binary directory.
+   * @param \Composer\Composer $composer
+   *   The Composer object.
+   *
+   * @return string
+   *   The binary path.
    */
-  protected static function installBin(string $bin_dir): void {
+  protected static function installBin(Composer $composer): string {
+    $bin_dir = $composer->getConfig()->get('bin-dir');
+
     if (!is_dir($bin_dir)) {
       mkdir($bin_dir, 0777, TRUE);
     }
@@ -103,16 +100,22 @@ class GitSplit {
 
     $os = php_uname('s');
     if (!isset(self::SPLITSH_URL[$os])) {
-      throw new \LogicException("There's no splitsh-lite version for '{$os}' operating system.");
+      throw new \LogicException("There's no splitsh-lite version for {$os} operating system.");
     }
-    $url = self::SPLITSH_URL[$os];
 
-    $bin_path = $bin_dir . '/' . self::SPLITSH_BIN;
+    $bin_path = realpath("{$bin_dir}/" . self::SPLITSH_BIN);
     if (file_exists($bin_path)) {
-      echo "- {$name} already installed at {$bin_path}\n";
-      return;
+      if (is_executable($bin_path)) {
+        echo "- {$name} already installed at {$bin_path}\n";
+        return $bin_path;
+      }
+      else {
+        // The file exists but is not executable. Re-download.
+        unlink($bin_path);
+      }
     }
 
+    $url = self::SPLITSH_URL[$os];
     if (strpos($url, 'tar.gz') !== FALSE) {
       $filename = sys_get_temp_dir() . "/$name";
       $filename_tar = "{$filename}.tar";
@@ -121,15 +124,17 @@ class GitSplit {
       echo "- Downloading to {$filename_tar_gz}\n";
       copy($url, $filename_tar_gz);
 
-      passthru("tar zxf $filename_tar_gz");
-      rename("./" . $name, $bin_path);
+      passthru("tar zxf {$filename_tar_gz}");
+      rename("./{$name}", $bin_path);
     }
     else {
       copy($url, $bin_path);
     }
 
     chmod($bin_path, 0755);
-    echo "- Installed $url to $bin_path \n";
+    echo "- Installed {$url} to {$bin_path}\n";
+
+    return $bin_path;
   }
 
   /**
