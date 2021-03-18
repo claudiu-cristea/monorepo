@@ -4,7 +4,7 @@ Demonstrates a _multirepo_ plus _manyrepos_ configuration. The development (PRs)
 goes in the _multirepos_. The synchronization can be triggered manually or
 automatically, with Github actions.
 
-* Initially, https://github.com/devshop-packages/git-split has been requires
+* Initially, https://github.com/devshop-packages/git-split has been required
   because it offers exacly this functionality, via the Composer command,
   `git:split`. However, using an external dependecy means that we need to run a
   full Composer install in GitHub actions, which is bad, as we need a very short
