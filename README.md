@@ -17,6 +17,17 @@ automatically, with Github actions.
   https://github.com/claudiu-cristea/monorepo/blob/master/src/GitSplit/GitSplit.php,
   and now the sync process is superfast.
 * Uses Github actions to run `composer git:split` on each push to the multirepo.
+* The splits are defined in `composer.json`:
+  ```json
+  "extra": {
+      "git-split": {
+          "repos": {
+              "packages/repo1": "https://github.com/claudiu-cristea/repo1.git",
+              "packages/repo2": "https://github.com/claudiu-cristea/repo2.git"
+          }
+      }
+  }
+  ```
 * The workflow script is heavily inspired by
   https://github.com/opendevshop/devshop/blob/1.x/.github/workflows/git.yml.
 * Github configurations:
