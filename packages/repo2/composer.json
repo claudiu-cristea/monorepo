@@ -1,0 +1,12 @@
+{
+  "name": "claudiu-cristea/repo2",
+  "description": "2",
+  "require": {
+    "amphp/sql": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenEuropa\\Library\\Repo2\\": "src"
+    }
+  }
+}

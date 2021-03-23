@@ -1,9 +1,15 @@
 {
     "name": "claudiu-cristea/monorepo",
     "description": "Monorepo+Multirepos demo",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "php": "^7.1",
         "composer/composer": "^2.0"
+    },
+    "require-dev": {
+        "claudiu-cristea/repo1": "*",
+        "claudiu-cristea/repo2": "*"
     },
     "autoload-dev": {
         "psr-4": {
@@ -22,5 +28,15 @@
                 "packages/repo2": "https://github.com/claudiu-cristea/repo2.git"
             }
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/repo1"
+        },
+        {
+            "type": "path",
+            "url": "packages/repo2"
+        }
+    ]
 }
