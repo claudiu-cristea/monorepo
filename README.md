@@ -45,3 +45,11 @@ Demonstrates a _monorepo_+_manyrepos_ configuration. The development (PRs) goes 
   * Create a vendor-space API token with proper permissions.
   * In the _monorepo_ settings, add a repository secret named
     `INPUT_GITHUB_TOKEN` with the token generated above as value.
+    
+## Known issues
+  
+* Synchronizing a branch or tag deletion doesn't work.
+
+## Feature requests
+
+* It might be useful to be able to limit the sync to a configurable list of branches (and tags?)
