@@ -1,8 +1,6 @@
-# Multirepo+Manyrepos demo
+# Monorepo+Manyrepos demo
 
-Demonstrates a _multirepo_ plus _manyrepos_ configuration. The development (PRs)
-goes in the _multirepos_. The synchronization can be triggered manually or
-automatically, with Github actions.
+Demonstrates a _monorepo_+_manyrepos_ configuration. The development (PRs) goes in the _monorepo_. The synchronization can be triggered manually or automatically, with Github actions.
 
 ## Why?
 
@@ -29,7 +27,7 @@ automatically, with Github actions.
   running sync process. For this reason we maintain our own script,
   https://github.com/claudiu-cristea/monorepo/blob/master/src/GitSplit/GitSplit.php,
   and now the sync process is superfast.
-* Uses Github actions to run `composer git:split` on each push to the multirepo.
+* Uses Github actions to run `composer git:split` on each push to the _monorepo_.
 * The splits are defined in `composer.json`:
   ```json
   "extra": {
@@ -45,5 +43,13 @@ automatically, with Github actions.
   https://github.com/opendevshop/devshop/blob/1.x/.github/workflows/git.yml.
 * Github configurations:
   * Create a vendor-space API token with proper permissions.
-  * In the _multirepo_ settings, add a repository secret named
+  * In the _monorepo_ settings, add a repository secret named
     `INPUT_GITHUB_TOKEN` with the token generated above as value.
+    
+## Known issues
+  
+* Synchronizing a branch or tag deletion doesn't work.
+
+## Feature requests
+
+* It might be useful to be able to limit the sync to a configurable list of branches (and tags?)
