@@ -15,6 +15,7 @@ use Composer\Factory;
 use Composer\IO\BufferIO;
 use Composer\Json\JsonFile;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
+use Symfony\Component\Filesystem\Filesystem;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
@@ -39,6 +40,7 @@ if (empty($args)) {
 // Read composer.json content.
 $definition = $json->read();
 $devRequires =& $definition['require-dev'];
+$repositories =& $definition['repositories'];
 $gitSplitRepos = $definition['extra']['git-split']['repos'] ?? [];
 
 if (!$gitSplitRepos) {
@@ -79,6 +81,23 @@ $nonSubRepoDevRequires = array_diff_key($devRequires, $packages);
 $devRequires = $nonSubRepoDevRequires + $selectedDevRequires;
 ksort($devRequires);
 
+// Cleanup "repositories" section.
+$selectedDevRepos = array_intersect_key($packages, $selectedDevRequires);
+$repositories = array_filter(
+  $repositories,
+  function (array $repository) use ($selectedDevRepos): bool {
+      return $repository['type'] === 'path' && in_array($repository['url'], $selectedDevRepos, true);
+  }
+);
+
+// Finally, remove the packages themselves.
+$fileSystem = new Filesystem();
+array_walk($packages, function (string $path, string $repository) use ($fileSystem, $selectedDevRepos): void {
+    if (!isset($selectedDevRepos[$repository])) {
+        $fileSystem->remove($path);
+    }
+});
+
 // Update composer.json
 $json->write($definition);
 
@@ -88,6 +107,7 @@ passthru("./vendor/bin/composer update");
 buildAndRunTests();
 exit(0);
 
-function buildAndRunTests() {
+function buildAndRunTests()
+{
     // Build, install & run tests...
 }
