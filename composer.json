@@ -9,7 +9,8 @@
     },
     "require-dev": {
         "claudiu-cristea/repo1": "*",
-        "claudiu-cristea/repo2": "*"
+        "claudiu-cristea/repo2": "*",
+        "drupal/core-utility": "^9.1"
     },
     "autoload-dev": {
         "psr-4": {
