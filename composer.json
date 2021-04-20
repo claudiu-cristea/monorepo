@@ -10,7 +10,7 @@
     "require-dev": {
         "claudiu-cristea/repo1": "*",
         "claudiu-cristea/repo2": "*",
-        "drupal/core-utility": "^9.1"
+        "monolog/monolog": "1.0.*"
     },
     "autoload-dev": {
         "psr-4": {
