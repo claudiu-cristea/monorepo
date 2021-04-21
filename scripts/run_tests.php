@@ -51,6 +51,23 @@ foreach ($gitSplitRepos as $path => $url) {
     $repo = $composer->getRepositoryManager()->createRepository('vcs', [
         'url' => $url,
     ], $path);
+    // @todo This process is very slow, as the packages are gathered by
+    //   performing an HTTP request for each repository. Consider to improve
+    //   this by changing the structure of extras.git-split.repos to:
+    //   "extra": {
+    //     "git-split": {
+    //       "repos": {
+    //         "claudiu-cristea/repo1": {
+    //           "path": "packages/repo1",
+    //           "repo": "https://github.com/claudiu-cristea/repo1.git"
+    //         },
+    //         "claudiu-cristea/repo2": {
+    //           "path": "packages/repo2",
+    //           "repo": "https://github.com/claudiu-cristea/repo2.git"
+    //         }
+    //       }
+    //     }
+    //   }
     foreach ($repo->getPackages() as $package) {
         $allComponents[$package->getName()] = $path;
     }
@@ -69,7 +86,7 @@ $selectedDevRequires = array_intersect_key($devRequires, array_flip($args));
 $nonSubRepoDevRequires = array_diff_key($devRequires, $allComponents);
 // Concatenate passed packages with non-component packages.
 $devRequires = $nonSubRepoDevRequires + $selectedDevRequires;
-// Honour "sort-packages" config.
+// Honour the "sort-packages" config.
 if ($composer->getConfig()->get('sort-packages')) {
     ksort($devRequires);
 }
