@@ -100,6 +100,8 @@ $repositories = array_filter($repositories, function (array $repository) use ($s
 // Finally, remove the packages themselves.
 $fileSystem = new Filesystem();
 array_walk($allComponents, function (string $path, string $repository) use ($fileSystem, $selectedDevRepos): void {
+    // @todo Ensure we are not removing packages that are dependencies of the
+    //   packages we're keeping.
     if (!isset($selectedDevRepos[$repository])) {
         $fileSystem->remove($path);
     }
